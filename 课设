@@ -1,1 +1,304 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<math.h>
+#include<string.h>
+int i;
+int j=0;
+int k=0; 
+typedef struct book
+{ char id[20];//图书登录号 
+  char name[20];//书名 
+  char writer[20];//作者 
+  char sort[20];//分类号 
+  char chu[20];//出版单位 
+  char date[20];//出版日期 
+  double price;//价格	
+}BK;
+struct node
+{
+	BK text;//每一本书的相关信息 
+	struct node *next;
+}; 
+struct node *n;
+struct node *m;
+//有关链表的函数 
+struct node *list=NULL; 
+struct node *cjheadnode();//创建头节点（头节点为空）
+struct node *cjnode(BK text);//创建空节点 
+struct node* findlist(struct node *headnode,char *bkname);//查找节点 
+struct node* findlist1(struct node *headnode,char *wtname);
+struct node* findlist2(struct node *headnode,char *bkname);//看录入的书是否重复 
+void deletelist(struct node *headnode,char *scbookname);//删除节点  
+void crlist(struct node *headnode,BK text);//插入节点 
+void sclist(struct node *headnode);//输出链表 
+void mplist(struct node *headnode);//链表排序 
+//
+void kaitou();
+void cunfile(char *fname,struct node *headnode)//将数据写入文件中 
+{  
+	FILE* fp=fopen(fname,"w");//写进文件 
+	//因为头节点为空 从第二个节点开始写
+	struct node *dunode=headnode->next;
+	while(dunode!=NULL)
+	{   
+		fprintf(fp,"%s\t%s\t%s\t%s\t%s\t%s\t%.2f\n",dunode->text.id,dunode->text.name,dunode->text.writer,dunode->text.sort,dunode->text.chu,dunode->text.date,dunode->text.price);
+		dunode=dunode->next;		
+	 } 
+	fclose(fp);	
+}
 
+void dufile(char *fname,struct node *headnode)//将文件的数据读出来 放入链表中 
+{  
+  FILE* fp=fopen(fname,"r");
+  if(fp==NULL)
+    {   //第一次直接打开的时候并没有建立文件，NULL，建立一个 
+    	fp=fopen(fname,"w+");
+	}
+  BK temp2;
+  while(fscanf(fp,"%s\t%s\t%s\t%s\t%s\t%s\t%lf\n",temp2.id,temp2.name,temp2.writer,temp2.sort,temp2.chu,temp2.date,&temp2.price)!=EOF)
+   {//数据读入后 将其插入链表
+    crlist(list,temp2); 	
+	  }	
+	fclose(fp);
+ } 
+void shuru()
+{  int i;
+   BK temp;
+   scanf("%d",&i);
+   switch(i)
+   {
+   	case 0:
+   		 printf("【退出系统！】\n");
+   		 printf("退出成功！\n");
+		 exit(0); 
+		 break;
+   	case 1:
+   		 printf("【录入】\n");
+   		 printf("请输入书籍的信息:(id name writer sort chu date price)");
+   		 scanf("%s\t%s\t%s\t%s\t%s\t%s\t%lf",temp.id,temp.name,temp.writer,temp.sort,temp.chu,temp.date,&temp.price);
+   		 int d=1;
+   		 char o[20];
+   		 strcpy(o,temp.name);
+   		 d=findlist2(list,o);
+   		 if(d==0)
+   		 {
+		 printf("录入成功！\n");
+   		 crlist(list,temp);//将新录入的书插入链表  
+   		 cunfile("book.txt",list);
+			}
+		else
+		{printf("您录入的书已经存在！\n");
+		}
+		 break;
+   	case 2:
+   		 printf("【浏览】\n");
+   		 sclist(list);
+		 break; 
+   	case 3:
+   		 printf("【查询】\n");
+   		 printf("请输入您要通过哪种方式查询书籍：1：书名查询，2：作者名查询 :"); 
+   		 scanf("%d",&i);
+		 if(i==1)
+		 {printf("请输入您想查询的书名:"); 
+		  char a[20];
+		  scanf("%s",a);
+		  getchar();
+		  struct node *p=findlist(list,a);
+		  if(j==0)
+		  {printf("id\tname\twriter\tsort\tshu\tdate\tprice\n");
+		   printf("%s\t%s\t%s\t%s\t%s\t%s\t%.2f\n",p->text.id,p->text.name,p->text.writer,p->text.sort,p->text.chu,p->text.date,p->text.price);		  	
+		  }  
+		  } 
+		 if(i==2)
+		 {printf("请输入你想查询到书的作者名:");
+		  char a[20];
+		  scanf("%s",a);
+		  getchar();
+		  struct node *p=findlist(list,a);
+		  if(k==0)
+		  {printf("id\tname\twriter\tsort\tshu\tdate\tprice\n");
+		   printf("%s\t%s\t%s\t%s\t%s\t%s\t%.2f\n",p->text.id,p->text.name,p->text.writer,p->text.sort,p->text.chu,p->text.date,p->text.price);		  	
+		  }  
+		  }    
+		 break; 
+   	case 4:
+   		 printf("【排序】\n");//冒泡排序
+		 mplist(list);//冒泡排序链表 (通过价格排序)
+		 sclist(list);
+         cunfile("book.txt",list);//排序完更新文件 
+		 break;
+   	case 5:
+	     printf("【删除】\n");
+	     printf("请输入您想删除的书的书名："); 
+	     char a[20];
+	     scanf("%s",a);
+	     getchar();
+	     deletelist(list,a);//删除 
+	     cunfile("book.txt",list);//重新更新文件 
+		 break;
+   	case 6:
+   		 printf("【修改】\n");
+   		 printf("请输入您想修改的书名:"); 
+		  char b[20];
+		  scanf("%s",b);
+		  getchar();
+		  struct node *p=findlist(list,b);
+		  if(j==0)
+		  {
+		   deletelist(list,b);		   
+		   printf("请输入您修改后的数据:");
+		   BK ppp;
+		   scanf("%s\t%s\t%s\t%s\t%s\t%s\t%lf",ppp.id,ppp.name,ppp.writer,ppp.sort,ppp.chu,ppp.date,&ppp.price);
+		   crlist(list,ppp);
+		   printf("修改完成！");	   
+           cunfile("book.txt",list);//排序完更新文件		   	  	
+		  }  
+		 break;
+   	default:
+	     printf("【输入错误！】\n");
+		 break;
+     }
+} 
+int  main()
+{   
+   list=cjheadnode();//建立一个链表 
+   dufile("book.txt",list);
+   while(1)
+   { 
+   kaitou();
+   shuru();
+   system("pause");
+ }
+   system("pause");			 	
+   }
+void kaitou(struct node *head)
+{ printf("        ");system("date/t");printf("\t  ");system("time/t");
+  printf("-------欢迎使用图书管理系统-------\n");
+  printf("\t系统提供以下功能:\n");
+  printf("\t1:录入图书\n");
+  printf("\t2:浏览图书\n");
+  printf("\t3:查询图书\n");
+  printf("\t4:排序图书\n");
+  printf("\t5:删除图书\n");
+  printf("\t6:修改图书\n");
+  printf("\t0:退出系统\n");
+  printf("----------------------------------\n");
+  printf("请输入（0~6）:");
+  
+}
+//创建头节点（头节点为空）
+struct node *cjheadnode() 
+{ struct node *headnode=(struct node *)malloc(sizeof(struct node));
+  headnode->next=NULL;
+  return headnode;//返回头部空节点的地址	
+}
+//创建普通节点，将需要创建的书籍数据作为结构体变量，同时为插入链表做准备
+struct node *cjnode(BK text) 
+{ struct node *newnode=(struct node *)malloc(sizeof(struct node));
+  newnode->text=text;
+  newnode->next=NULL;//创建完节点后，假设它的下一个为尾节点，方便插入头节点后面（防止其就是最后一个节点）	
+  return newnode;	
+}
+//插入一个节点，从头部插入链表比较方便
+void crlist(struct node *headnode,BK text) 
+{   struct node *newcode=cjnode(text);//将创建的新节点引入 
+    newcode->next=headnode->next;
+    headnode->next=newcode;	
+}
+//通过书名查找书籍 
+struct node* findlist(struct node *headnode,char *bkname)
+{ struct node *pt=headnode;
+  struct node *ptr=headnode->next;
+  while(ptr!=NULL&&strcmp(bkname,ptr->text.name))
+  {
+  	pt=ptr;
+  	ptr=ptr->next;
+  }
+  if(ptr==NULL)
+  {printf("您查询的书不存在！\n");
+   j=1; 
+   } 
+  else
+  { 
+   return ptr;//返回查到的书的地址 
+   } 
+} 
+//通过作者名查找书籍
+struct node* findlist1(struct node *headnode,char *wtname)
+{ struct node *pt=headnode;
+  struct node *ptr=headnode->next;
+  while(ptr!=NULL&&strcmp(wtname,ptr->text.writer))
+  {
+  	pt=ptr;
+  	ptr=ptr->next;
+  }
+  if(ptr==NULL)
+  {printf("您查询的书不存在！\n");
+   k=1;
+   return ; 
+   } 
+  else
+  { 
+   return ptr;//返回查到的书的地址 
+   } 
+} 
+struct node* findlist2(struct node *headnode,char *bkname)//查看录入的书是否重复 
+{ struct node *pt=headnode;
+  struct node *ptr=headnode->next;
+  while(ptr!=NULL&&strcmp(bkname,ptr->text.name))
+  {
+  	pt=ptr;
+  	ptr=ptr->next;
+  }
+  if(ptr==NULL)
+  {
+   j=1;
+   return 0;
+   } 
+  else
+  { 
+   return ptr;//返回查到的书的地址 
+   } 
+} 
+ //图书删除（通过书名删除） 
+void deletelist(struct node *headnode,char *scbookname)
+{ struct node *ptz=headnode;
+  struct node *pt=headnode->next;
+  while(pt!=NULL&&strcmp(scbookname,pt->text.name))
+  { ptz=pt;
+    pt=pt->next;
+	  }	
+  if(pt==NULL)
+  {printf("您想删除的书不存在！\n");
+   return ;
+   } 
+  else
+  {  printf("删除成功！\n");
+     ptz->next=pt->next; 
+     free(pt);
+     pt=NULL;
+   }  		
+}
+//图书排序
+//冒泡排序链表 (通过价格排序)
+void mplist(struct node*headnode)
+{  
+  for(n=headnode->next;n!=NULL;n=n->next)
+    {for(m=headnode->next;m->next!=NULL;m=m->next)
+       { if(m->text.price>m->next->text.price)
+	      { BK jh=m->text;
+	       m->text=m->next->text;
+	       m->next->text=jh;	      	 
+		   }            	
+	        }   	
+            	}						
+                  }      
+//把链表输出，因为头节点设置为空，从第二个节点开始输出 
+void sclist(struct node *headnode) 
+{ struct node *scnode=headnode->next;//定义一个输出节点 
+  printf("id\tname\twriter\tsort\tshu\tdate\tprice\n") ;
+  while(scnode!=NULL)
+{ printf("%s\t%s\t%s\t%s\t%s\t%s\t%.2f\n",scnode->text.id,scnode->text.name,scnode->text.writer,scnode->text.sort,scnode->text.chu,scnode->text.date,scnode->text.price);
+  scnode=scnode->next;//指向下一个节点继续输出	 	
+   }	
+}
